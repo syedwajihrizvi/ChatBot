@@ -4,6 +4,8 @@ import { TypingIndicator } from './TypingIndicator';
 import { Message } from './Message';
 import type { ChatInputForm, ResponseMessage } from '@/types';
 import { ChatInput } from './ChatInput';
+import notifaction from '../assets/sounds/notification.mp3';
+import pop from '../assets/sounds/pop.mp3';
 
 type OpenAIResponse = {
    response: {
@@ -19,6 +21,11 @@ const ChatBot = () => {
    const bottomRef = useRef<HTMLDivElement | null>(null);
    const [isWaiting, setIsWaiting] = useState(false);
 
+   const notificationAudio = new Audio(notifaction);
+   const popSoundAudio = new Audio(pop);
+   notificationAudio.volume = 0.2;
+   popSoundAudio.volume = 0.2;
+
    useEffect(() => {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
    }, [messages, isWaiting]);
@@ -26,6 +33,7 @@ const ChatBot = () => {
    const onSubmit = async ({ prompt }: ChatInputForm) => {
       setMessages((prev) => [...prev, { content: prompt, role: 'user' }]);
       setIsWaiting(true);
+      popSoundAudio.play();
       try {
          const data = await axios.post<OpenAIResponse>('/api/chat', {
             prompt,
@@ -37,6 +45,7 @@ const ChatBot = () => {
             { content: res.response.output_text, role: 'bot' },
          ]);
          setError(null);
+         notificationAudio.play();
       } catch (error) {
          console.error(error);
          setError('Something went wrong. Please try again.');
